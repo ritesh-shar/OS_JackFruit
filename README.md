@@ -40,7 +40,7 @@ sudo ./engine supervisor ./rootfs
 # 2. Engineering Analysis
 
 ### I. Isolation Mechanisms:
-This runtime utilizes Linux Namespaces to create isolated environments. We specifically use:
+This runtime utilizes Linux Namespaces to create isolated environments. We specifically use,
 1)CLONE_NEWPID: Ensures the container has its own process tree; the child process cannot see or kill host processes.
 2)CLONE_NEWNS: Isolates mount points. Combined with chroot(), this prevents the container from accessing the host filesystem.
 3)CLONE_NEWUTS: Allows the container to have a unique hostname.
