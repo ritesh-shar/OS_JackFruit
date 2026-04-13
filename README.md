@@ -4,7 +4,7 @@
  ### 1- Rithish P M. SRN - PES2UG24CS405.
  ### 2- Ritesh Kumar Sharma. SRN - PES2UG24CS404.
 
-## 1. Build & Run Instructions
+# 1. Build & Run Instructions
 
 ### Prerequisites
 ### Ubuntu 22.04/24.04
