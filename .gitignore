@@ -1,0 +1,15 @@
+engine 
+cpu_hog 
+memory_hog 
+io_pulse 
+*.ko 
+*.o 
+*.mod* 
+*.order 
+*.symvers 
+.*.cmd 
+logs/ 
+*.log 
+*.sock 
+rootfs*/ 
+*.tar.gz
