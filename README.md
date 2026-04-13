@@ -37,7 +37,7 @@ sudo ./engine supervisor ./rootfs
 ./engine stop c1
 ```
 
-## 2. Engineering Analysis
+# 2. Engineering Analysis
 
 ### I. Isolation Mechanisms:
 This runtime utilizes Linux Namespaces to create isolated environments. We specifically use:
@@ -63,7 +63,7 @@ The Kernel Monitor (LKM) tracks Resident Set Size (RSS) via IOCTLs.
 1) RSS vs Virtual Memory: RSS only counts pages currently in physical RAM.
 2) Enforcement: Hard limits are enforced in kernel space because the kernel is the only entity that can reliably preempt a process or trigger an OOM (Out Of Memory) event before the entire system crashes.
 
-## 3. Design Decisions & Tradeoffs:
+# 3. Design Decisions & Tradeoffs:
 
 |Component|Choice|Tradeoff|Justification|
 |---------|------|--------|-------------|
@@ -71,7 +71,7 @@ The Kernel Monitor (LKM) tracks Resident Set Size (RSS) via IOCTLs.
 |IPC|Unix Domain Socket|More complex than FIFOs|Provides a reliable, bi-directional stream for complex control structures|
 |Logging|Asynchronous Threads|Potential for log loss on crash|Prevents the container execution from slowing down due to slow Disk I/O|
 
-## 4. Screenshots:
+# 4. Screenshots:
 ### IPC Proof:
 ### Zombie Prevention:
 ### Signal Handling:
