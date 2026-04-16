@@ -70,7 +70,6 @@ typedef enum {
 } container_state_t;
 
 
-/* FIX 1: Add stop_kind_t enum before container_record_t */
 typedef enum {
     STOP_NONE,
     STOP_GRACEFUL,
@@ -78,7 +77,6 @@ typedef enum {
 } stop_kind_t;
 
 
-/* FIX 2 & 3: Added waiting_cli_fd and termination fields */
 typedef struct container_record {
     char id[CONTAINER_ID_LEN];
     pid_t host_pid;
@@ -91,7 +89,7 @@ typedef struct container_record {
     char log_path[PATH_MAX];
     int waiting_cli_fd;
     stop_kind_t termination;
-    void *child_stack;              /* NEW: stack allocated for clone child */
+    void *child_stack;              
     struct container_record *next;
 } container_record_t;
 
@@ -453,7 +451,6 @@ int bounded_buffer_pop(bounded_buffer_t *buffer, log_item_t *item)
  *   - route each chunk to the correct per-container log file
  *   - exit cleanly when shutdown begins and pending work is drained
  */
-/* FIX 5: closing brace was misplaced inside the while loop — moved to after return NULL */
 void *logging_thread(void *arg)
 {
     bounded_buffer_t *buffer = (bounded_buffer_t *)arg;

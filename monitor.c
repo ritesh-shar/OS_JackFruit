@@ -1,7 +1,5 @@
 /*
  * monitor.c - Multi-Container Memory Monitor (Linux Kernel Module)
- *
- * FIXED VERSION:
  * - restores proper function bodies / braces
  * - adds safer timer callback structure
  * - avoids doing expensive process/mm work while holding spinlock
@@ -44,12 +42,33 @@ struct container_resource_node {
 static LIST_HEAD(monitored_containers);
 static DEFINE_SPINLOCK(monitored_list_lock);
 
+/* ==============================================================
+ * TODO 1: Define your linked-list node struct.
+ *
+ * Requirements:
+ *   - track PID, container ID, soft limit, and hard limit
+ *   - remember whether the soft-limit warning was already emitted
+ *   - include `struct list_head` linkage
+ * ============================================================== */
+
+
+/* ==============================================================
+ * TODO 2: Declare the global monitored list and a lock.
+ *
+ * Requirements:
+ *   - shared across ioctl and timer code paths
+ *   - protect insert, remove, and iteration safely
+ *
+ * You may choose either a mutex or a spinlock, but your README must
+ * justify the choice in terms of the code paths you implemented.
+ * ============================================================== */
+
 static struct timer_list monitor_timer;
 static dev_t dev_num;
 static struct cdev c_dev;
 static struct class *cl;
 
-/* FIX: helper to find a registered container by (pid, container_id) */
+
 static struct container_resource_node *
 find_node_locked(pid_t pid, const char *container_id)
 {
@@ -64,7 +83,7 @@ find_node_locked(pid_t pid, const char *container_id)
     return NULL;
 }
 
-/* FIX: restore valid function body and return paths */
+
 static long get_rss_bytes(pid_t pid)
 {
     struct task_struct *task;
@@ -102,7 +121,7 @@ static void log_soft_limit_event(const char *container_id,
             container_id, pid, rss_bytes, limit_bytes);
 }
 
-/* FIX: keep kill helper small and self-contained */
+
 static void kill_process(const char *container_id,
                          pid_t pid,
                          unsigned long limit_bytes,
@@ -120,16 +139,6 @@ static void kill_process(const char *container_id,
             container_id, pid, rss_bytes, limit_bytes);
 }
 
-/*
- * FIX: do not call get_rss_bytes()/kill_process() while holding the spinlock.
- * Strategy:
- * 1) take lock, copy minimal node info into a temporary array
- * 2) drop lock
- * 3) inspect tasks / rss and decide action
- * 4) re-lock only to mutate the monitored list
- *
- * This avoids expensive mm/task work under spin_lock_irqsave().
- */
 struct monitor_snapshot {
     pid_t pid;
     char container_id[MONITOR_NAME_LEN];
@@ -140,6 +149,17 @@ struct monitor_snapshot {
 
 static void timer_callback(struct timer_list *t)
 {
+    /* ==============================================================
+     * TODO 3: Implement periodic monitoring.
+     *
+     * Requirements:
+     *   - iterate through tracked entries safely
+     *   - remove entries for exited processes
+     *   - emit soft-limit warning once per entry
+     *   - enforce hard limit and then remove the entry
+     *   - avoid use-after-free while deleting during iteration
+     * ============================================================== */
+
     struct container_resource_node *entry;
     struct monitor_snapshot *snapshots = NULL;
     unsigned long flags;
@@ -219,7 +239,6 @@ static void timer_callback(struct timer_list *t)
                                  snapshots[i].soft_limit,
                                  rss);
 
-            /* FIX: mark warning only under lock after re-finding node */
             spin_lock_irqsave(&monitored_list_lock, flags);
             entry = find_node_locked(snapshots[i].pid, snapshots[i].container_id);
             if (entry)
@@ -248,7 +267,7 @@ static long monitor_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
     if (copy_from_user(&req, (struct monitor_request __user *)arg, sizeof(req)))
         return -EFAULT;
 
-    /* FIX: basic pid/container-id validation */
+    
     if (req.pid <= 0)
         return -EINVAL;
 
@@ -260,11 +279,29 @@ static long monitor_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
                 req.container_id, req.pid,
                 req.soft_limit_bytes, req.hard_limit_bytes);
 
+            /* ==============================================================
+         * TODO 4: Add a monitored entry.
+         *
+         * Requirements:
+         *   - allocate and initialize one node from req
+         *   - validate allocation and limits
+         *   - insert into the shared list under the chosen lock
+         * ============================================================== */
+
         if (req.soft_limit_bytes == 0 || req.hard_limit_bytes == 0 ||
             req.soft_limit_bytes >= req.hard_limit_bytes) {
             pr_warn("[container_monitor] Invalid limits for PID %d\n", req.pid);
             return -EINVAL;
         }
+
+        /* ==============================================================
+        * TODO 5: Remove a monitored entry on explicit unregister.
+        *
+        * Requirements:
+        *   - search by PID, container ID, or both
+        *   - remove the matching entry safely if found
+        *   - return status indicating whether a matching entry was removed
+     * ============================================================== */
 
         new_node = kzalloc(sizeof(*new_node), GFP_KERNEL);
         if (!new_node)
@@ -279,7 +316,6 @@ static long monitor_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 
         spin_lock_irqsave(&monitored_list_lock, flags);
 
-        /* FIX: reject duplicate registration of same (pid, container_id) */
         entry = find_node_locked(req.pid, req.container_id);
         if (entry) {
             spin_unlock_irqrestore(&monitored_list_lock, flags);
@@ -364,10 +400,16 @@ static void __exit monitor_exit(void)
     struct container_resource_node *entry, *tmp;
     unsigned long flags;
 
-    /* FIX: stop timer first so no new callback races with teardown */
     timer_delete_sync(&monitor_timer);
 
-    /* FIX: free list before device/class teardown */
+    /* ==============================================================
+     * TODO 6: Free all remaining monitored entries.
+     *
+     * Requirements:
+     *   - remove and free every list node safely
+     *   - leave no leaked state on module unload
+     * ============================================================== */
+
     spin_lock_irqsave(&monitored_list_lock, flags);
     list_for_each_entry_safe(entry, tmp, &monitored_containers, node) {
         list_del(&entry->node);
