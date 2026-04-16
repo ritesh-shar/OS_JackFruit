@@ -12,29 +12,36 @@
 ### A valid rootfs (instructions below
 
 ## Setup
-# 1) Prepare rootfs
+### 1) Prepare rootfs
 ``` bash
 mkdir rootfs
 wget https://dl-cdn.alpinelinux.org/alpine/v3.19/releases/x86_64/alpine-minirootfs-3.19.1-x86_64.tar.gz
 tar -xzf alpine-minirootfs-*.tar.gz -C rootfs/
 ```
 
-# 2) Build and Load
+### 2) Build and Load
 ```bash
 make
 sudo insmod monitor.ko
 ```
 
-# 3) Start Supervisor
+### 3) Start Supervisor
 ```bash
 sudo ./engine supervisor ./rootfs
 ```
 
-# 4) CLI Commands
+### 4) CLI Commands
 ```bash
 ./engine run c1 ./rootfs "ls -R /"
 ./engine ps
 ./engine stop c1
+```
+
+### 5) Clear and Exit 
+```bash
+sudo make clean
+sudo rmmod monitor
+# Ctrl + c in Supervisor Terminal
 ```
 
 # 2. Engineering Analysis
@@ -73,6 +80,18 @@ The Kernel Monitor (LKM) tracks Resident Set Size (RSS) via IOCTLs.
 
 # 4. Screenshots:
 ### IPC Proof:
+![IPC_Proof](Screenshots/IPC_Proof.jpeg)
 ### Zombie Prevention:
+![Zombie_Checking](Screenshots/Zombie_Checking.jpeg)
 ### Signal Handling:
+![Signal_Handling](Screenshots/Signal_Handling.jpeg)
 ### Orderly Shutdown:
+
+### 1 Graceful Shutdown:
+![Graceful_Shutdown](Screenshots/Graceful_Shutdown.jpeg)
+
+### 2 Forceful Shutdown:
+![Forceful_Shutdown](Screenshots/Forceful_Shutdown.jpeg)
+
+### 3. Supervisor Shutdown:
+![Supervisor_Shutdown](Screenshots/Supervisor_Shutdown.jpeg)
