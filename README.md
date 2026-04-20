@@ -79,6 +79,9 @@ The Kernel Monitor (LKM) tracks Resident Set Size (RSS) via IOCTLs.
 |Logging|Asynchronous Threads|Potential for log loss on crash|Prevents the container execution from slowing down due to slow Disk I/O|
 
 # 4. Screenshots:
+
+### CLI Commands:
+![CLI_Commands](Screenshots/CLI.jpeg)
 ### IPC Proof:
 ![IPC_Proof](Screenshots/IPC_Proof.jpeg)
 ### Zombie Prevention:
