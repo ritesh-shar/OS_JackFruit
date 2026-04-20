@@ -1,4 +1,4 @@
-### Supervised Multi-Container Runtime
+# Supervised Multi-Container Runtime
 
 ## Team Members
  ### 1- Rithish P M. SRN - PES2UG24CS405.
@@ -9,7 +9,7 @@
 ### Prerequisites
 ### Ubuntu 22.04/24.04
 ### build-essential, linux-headers-$(uname -r)
-### A valid rootfs (instructions below
+### A valid rootfs (instructions below)
 
 ## Setup
 ### 1) Prepare rootfs
@@ -61,7 +61,7 @@ The Supervisor acts as the dedicated parent (Init process) for all containers.
 
 ### III. IPC & Synchronization
 We implemented two distinct IPC mechanisms to separate the Control Plane from the Data Plane:
-1) Unix Domain Socket: Used for CLI-to-Supervisor commands. It is protected by a metadata_lock (Mutex) to ensure that two CLI instances don't corrupt the container list simultaneously.
+1) Unix Domain Socket: Used for CLI-to-Supervisor commands. It is protected by a spinlock to ensure that two CLI instances don't corrupt the container list simultaneously.
 2) Pipes & Bounded Buffer: Used for logging. A Producer-Consumer model is used where worker threads push logs into a buffer, and a dedicated logging thread writes them to disk.
 3) Synchronization: We use pthread_cond_t (Condition Variables) to block the logging thread when the buffer is empty, preventing high CPU usage from busy-waiting.
 
